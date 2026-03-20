@@ -32,6 +32,17 @@ systemd=true
 EOF
 ```
 
+### Why Enable systemd?
+
+Systemd is the init system used by most Linux distributions to manage services and the system boot process. Enabling systemd in WSL provides several benefits:
+
+- **Service Management**: Allows you to use `systemctl` commands to manage services like Docker, SSH, and other daemons
+- **Snap Support**: Many snap packages (including Docker) require systemd to function properly
+- **Compatibility**: Brings WSL behavior closer to traditional Linux systems, improving compatibility with Linux-native software
+- **Background Services**: Enables services to start automatically and run in the background properly
+
+> **Note**: Without systemd enabled, some services may fail to start or behave unexpectedly in WSL.
+
 Then enable and start the snapd service:
 
 ```bash
