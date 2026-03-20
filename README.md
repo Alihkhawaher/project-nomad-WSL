@@ -110,6 +110,30 @@ This will:
 
 ---
 
+## Important Note: AI Tools Removed
+
+AI tools (such as Ollama for local LLM inference) have been **removed** from this WSL installation. The primary reason is that **WSL does not work well with GPU passthrough**, which is essential for running AI models efficiently.
+
+### Why AI Tools Were Removed
+- WSL has limited GPU passthrough support compared to native Linux
+- NVIDIA Container Toolkit setup in WSL can be unreliable
+- AI model inference requires GPU acceleration for reasonable performance
+- CPU-only AI inference in WSL is prohibitively slow
+
+### Recommended Alternative: LM Studio
+
+For local LLM inference on Windows, we recommend **[LM Studio](https://lmstudio.ai/)** instead:
+
+- **Easy to use**: Simple GUI application for Windows
+- **Native Windows support**: No WSL or Docker required
+- **GPU acceleration**: Full GPU support on Windows for fast inference
+- **Model management**: Built-in model downloading and management
+- **API server**: Provides an OpenAI-compatible API if needed
+
+LM Studio provides a much better experience for running local AI models on Windows than attempting to use WSL with GPU passthrough.
+
+---
+
 ## Troubleshooting
 
 ### If WSL command not found
