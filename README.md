@@ -77,10 +77,11 @@ Then from PowerShell or Command Prompt:
 
 ```powershell
 wsl --list
+wsl -t Ubuntu
 wsl -d Ubuntu
 ```
 
-> **Note:** Replace `Ubuntu` with your actual WSL distribution name if different.
+> **Note:** Replace `Ubuntu` with your actual WSL distribution name if different. The `wsl -t Ubuntu` command terminates the WSL instance, and `wsl -d Ubuntu` starts it again.
 
 ---
 
