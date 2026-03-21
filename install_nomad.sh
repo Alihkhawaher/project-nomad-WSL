@@ -422,6 +422,42 @@ start_management_containers() {
   echo -e "${GREEN}#${RESET} Management containers started successfully.\\n"
 }
 
+fix_service_paths_for_snap() {
+  # Only run this fix for snap Docker installations where NOMAD_DIR is not /opt/project-nomad
+  if [[ "$NOMAD_DIR" != "/opt/project-nomad" ]]; then
+    echo -e "${YELLOW}#${RESET} Fixing service container paths for snap Docker compatibility...\\n"
+    
+    # Wait for MySQL to be ready
+    echo -e "${YELLOW}#${RESET} Waiting for database to be ready...\\n"
+    sleep 10
+    
+    # Get database credentials from compose file
+    local db_user=$(grep "DB_USER=" "${NOMAD_DIR}/compose.yml" | head -1 | cut -d'=' -f2)
+    local db_password=$(grep "DB_PASSWORD=" "${NOMAD_DIR}/compose.yml" | head -1 | cut -d'=' -f2)
+    local db_name=$(grep "DB_DATABASE=" "${NOMAD_DIR}/compose.yml" | head -1 | cut -d'=' -f2)
+    
+    # Update service container_config paths from /opt/project-nomad to actual NOMAD_DIR
+    docker exec nomad_mysql mysql -u"${db_user}" -p"${db_password}" "${db_name}" -e \
+      "UPDATE services SET container_config = REPLACE(container_config, '/opt/project-nomad', '${NOMAD_DIR}') WHERE container_config LIKE '%/opt/project-nomad%';" 2>/dev/null
+    
+    if [[ $? -eq 0 ]]; then
+      echo -e "${GREEN}#${RESET} Service paths updated successfully.\\n"
+    else
+      echo -e "${YELLOW}#${RESET} Note: Could not update service paths. If you encounter plugin installation issues, they may need to be fixed manually.\\n"
+    fi
+  fi
+  
+  # Fix kiwix-serve container command to skip invalid ZIM files
+  # This prevents the container from crashing when encountering corrupted ZIM files
+  echo -e "${YELLOW}#${RESET} Updating Kiwix service configuration to handle invalid ZIM files...\\n"
+  docker exec nomad_mysql mysql -u"${db_user}" -p"${db_password}" "${db_name}" -e \
+    "UPDATE services SET container_command = '*.zim --address=all --skipInvalid' WHERE service_name = 'nomad_kiwix_server' AND (container_command LIKE '%--address=all%' AND container_command NOT LIKE '%--skipInvalid%');" 2>/dev/null
+  
+  if [[ $? -eq 0 ]]; then
+    echo -e "${GREEN}#${RESET} Kiwix service configuration updated successfully.\\n"
+  fi
+}
+
 get_local_ip() {
   local_ip_address=$(hostname -I | awk '{print $1}')
   if [[ -z "$local_ip_address" ]]; then
@@ -462,6 +498,7 @@ download_sidecar_files
 download_helper_scripts
 download_management_compose_file
 start_management_containers
+fix_service_paths_for_snap
 success_message
 
 # free_space_check() {
